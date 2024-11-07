@@ -1,0 +1,41 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: MDSWorkspace_MongoDB
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo_data:/data/db
+    networks:
+      - mds_network
+
+  queue_service:
+    build:
+      context: ./Backend/queue_service
+    container_name: queue_service_container
+    depends_on:
+      - mongodb
+    networks:
+      - mds_network
+    ports:
+      - "8002:8002"  
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  react_app:
+    build:
+      context: ./Frontend/admin-app  
+    container_name: react_app_container
+    ports:
+      - "3000:80"  
+    networks:
+      - mds_network
+    depends_on:
+      - queue_service
+
+volumes:
+  mongo_data:
+
+networks:
+  mds_network:
+    name: mdsworkspace_mds_network
+    driver: bridge
